@@ -1,7 +1,9 @@
 package com.codepath.apps.restclienttemplate;
 
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -26,7 +28,13 @@ public class ComposeActivity extends AppCompatActivity {
     TwitterClient client;
     TextView characterCount;
 
-    @Override
+    public void styleActionBar() {
+        ActionBar ab = getSupportActionBar();
+
+        ab.setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.twitter_blue)));
+    }
+
+        @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_compose);
@@ -35,6 +43,8 @@ public class ComposeActivity extends AppCompatActivity {
         btnSend = findViewById(R.id.btnSend);
         characterCount = findViewById(R.id.tvCharCount);
         etTweetInput.addTextChangedListener(characterCounter);
+
+        styleActionBar();
 
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override

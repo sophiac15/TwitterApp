@@ -83,9 +83,10 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
         }
 
         if (tweet.liked) {
-            holder.ibRetweet.setImageResource(R.drawable.ic_vector_heart);
+            holder.ibLiked.setImageResource(R.drawable.ic_vector_heart);
+
         } else {
-            holder.ibRetweet.setImageResource(R.drawable.ic_vector_heart_stroke);
+            holder.ibLiked.setImageResource(R.drawable.ic_vector_heart_stroke);
         }
 
 
@@ -137,9 +138,6 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
 
     }
 
-
-    // check if tweet liked, client unliked tweet
-    // then change boolean tweet.liked and change count
 
     @Override
     public int getItemCount() {
