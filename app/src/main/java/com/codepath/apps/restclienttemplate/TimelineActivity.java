@@ -58,7 +58,7 @@ public class TimelineActivity extends AppCompatActivity {
         // init the arraylist (data source)
         tweets = new ArrayList<>();
         // construct the adapter from this datasource
-        tweetAdapter = new TweetAdapter(tweets);
+        tweetAdapter = new TweetAdapter(tweets, client);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
 
@@ -266,12 +266,6 @@ public class TimelineActivity extends AppCompatActivity {
             miActionProgressItem.setVisible(false);
         }
     }
-//
-//    @Override
-//    public ActionBar getSupportActionBar() {
-//        getSupportActionBar().getBackgroundDrawable(new ColorDrawable(getResources().getColor()))
-//    }
-//
-//    ActionBar actionBar = getActionBar();
-//actionBar.setBackgroundDrawable(new ColorDrawable(Color.RED));
+
+
 }

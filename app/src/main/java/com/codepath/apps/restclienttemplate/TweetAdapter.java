@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.codepath.apps.restclienttemplate.models.Tweet;
+import com.loopj.android.http.JsonHttpResponseHandler;
 
 import java.util.List;
 
@@ -19,11 +20,13 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
 
     private List<Tweet> mTweets;
     Context context;
+    private TwitterClient mClient;
 
 
     // pass in the tweets array into constructor
-    public TweetAdapter(List<Tweet> tweets){
+    public TweetAdapter(List<Tweet> tweets, TwitterClient client){
         mTweets = tweets;
+        mClient = client;
 
     }
 
@@ -59,9 +62,9 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
     // bind the values based on the position of the element
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
         // get the data according to position
-        Tweet tweet = mTweets.get(position);
+        final Tweet tweet = mTweets.get(position);
 
         // populate views according to this data
         holder.tvUsername.setText(tweet.user.name);
@@ -70,14 +73,40 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
 
         Glide.with(context).load(tweet.user.profileImageUrl).into(holder.ivProfileImage);
 
+        holder.tvLikes.setText(Integer.toString(tweet.numberLikes));
+        holder.tvRetweets.setText(Integer.toString(tweet.numberRetweets));
+
+        if (tweet.retweeted) {
+            holder.ibRetweet.setImageResource(R.drawable.ic_vector_retweet);
+        } else {
+            holder.ibRetweet.setImageResource(R.drawable.ic_vector_retweet_stroke);
+        }
+
+        if (tweet.liked) {
+            holder.ibRetweet.setImageResource(R.drawable.ic_vector_heart);
+        } else {
+            holder.ibRetweet.setImageResource(R.drawable.ic_vector_heart_stroke);
+        }
+
 
         holder.ibLiked.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (tweet.liked) {
-                    client.unlikeTweet(tweet.uid);
+                    mClient.unlikeTweet(tweet.uid, new JsonHttpResponseHandler());
+                    holder.ibLiked.setImageResource(R.drawable.ic_vector_heart_stroke);
+
+                    tweet.numberLikes--;
+                    holder.tvLikes.setText(Integer.toString(tweet.numberLikes));
+                    tweet.liked = false;
                 } else {
-                    client.likeTweet(tweet.uid);
+                    mClient.likeTweet(tweet.uid, new JsonHttpResponseHandler());
+                    tweet.numberLikes++;
+
+                    holder.ibLiked.setImageResource(R.drawable.ic_vector_heart);
+                    holder.tvLikes.setText(Integer.toString(tweet.numberLikes));
+                    tweet.liked = true;
+
                 }
             }
         });
@@ -87,24 +116,24 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
             @Override
             public void onClick(View v) {
                 if (tweet.retweeted) {
-                    client.unRetweet(tweet.uid);
+                    mClient.unRetweet(tweet.uid, new JsonHttpResponseHandler());
+                    holder.ibRetweet.setImageResource(R.drawable.ic_vector_retweet_stroke);
+
+                    tweet.numberRetweets--;
+                    holder.tvRetweets.setText(Integer.toString(tweet.numberRetweets));
+
+                    tweet.retweeted = false;
                 } else {
-                    client.retweet(tweet.uid);
+                    mClient.retweet(tweet.uid, new JsonHttpResponseHandler());
+                    tweet.numberRetweets++;
+
+                    holder.ibRetweet.setImageResource(R.drawable.ic_vector_retweet);
+                    holder.tvRetweets.setText(Integer.toString(tweet.numberRetweets));
+
+                    tweet.retweeted = true;
                 }
             }
         });
-
-
-
-
-
-
-        //listeners
-        // get client with context
-        // if tweet liked
-        // DO UNLIKE tweet.uid
-        //%s.json for retweet
-        //holder.btnLike
 
     }
 
