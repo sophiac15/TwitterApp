@@ -35,6 +35,12 @@ public class TimelineActivity extends AppCompatActivity {
 
 
     private SwipeRefreshLayout swipeContainer;
+    MenuItem miActionProgressItem;
+
+
+    // Store a member variable for the listener
+    private EndlessRecyclerViewScrollListener scrollListener;
+    long maxId = 0;
 
 
 
@@ -42,6 +48,7 @@ public class TimelineActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timeline);
+
 
         // i added this for context
         client = TwitterApp.getRestClient(this);
@@ -52,13 +59,15 @@ public class TimelineActivity extends AppCompatActivity {
         tweets = new ArrayList<>();
         // construct the adapter from this datasource
         tweetAdapter = new TweetAdapter(tweets);
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+
+
+
         // RecyclerView setup
-        rvTweets.setLayoutManager(new LinearLayoutManager(this));
+        rvTweets.setLayoutManager(linearLayoutManager);
         // set the adapter
         rvTweets.setAdapter(tweetAdapter);
-        populateTimeline();
-
-
 
         // Lookup the swipe container view
         swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
@@ -78,6 +87,30 @@ public class TimelineActivity extends AppCompatActivity {
                 android.R.color.holo_orange_light,
                 android.R.color.holo_red_light);
 
+
+        // Retain an instance so that you can call `resetState()` for fresh searches
+        scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                // Triggered only when new data needs to be appended to the list
+                // Add whatever code is needed to append new items to the bottom of the list
+                loadNextDataFromApi(page);
+            }
+        };
+        // Adds the scroll listener to RecyclerView
+        rvTweets.addOnScrollListener(scrollListener);
+
+    }
+
+    public void loadNextDataFromApi(int offset) {
+        maxId = tweets.get(tweets.size() - 1).uid;
+        populateTimeline(maxId);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -122,8 +155,9 @@ public class TimelineActivity extends AppCompatActivity {
     }
 
 
-    private void populateTimeline() {
-        client.getHomeTimeline(new JsonHttpResponseHandler() {
+    private void populateTimeline(long maxId) {
+        showProgressBar();
+        client.getHomeTimeline(maxId, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                // Log.d("TwitterClient", response.toString());
@@ -142,29 +176,34 @@ public class TimelineActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
+                hideProgressBar();
             }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 Log.d("TwitterClient", response.toString());
+                hideProgressBar();
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
                 Log.d("TwitterClient", responseString);
                 throwable.printStackTrace();
+                hideProgressBar();
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
                 Log.d("TwitterClient", errorResponse.toString());
                 throwable.printStackTrace();
+                hideProgressBar();
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
                 Log.d("TwitterClient", errorResponse.toString());
                 throwable.printStackTrace();
+                hideProgressBar();
             }
         });
     }
@@ -174,7 +213,7 @@ public class TimelineActivity extends AppCompatActivity {
         // Send the network request to fetch the updated data
         // `client` here is an instance of Android Async HTTP
         // getHomeTimeline is an example endpoint.
-        client.getHomeTimeline(new JsonHttpResponseHandler() {
+        client.getHomeTimeline(maxId, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 super.onSuccess(statusCode, headers, response);
@@ -202,5 +241,37 @@ public class TimelineActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        // Store instance of the menu item containing progress
+        miActionProgressItem = menu.findItem(R.id.miActionProgress);
 
+        // refresh timeline when progress is available
+        populateTimeline(maxId);
+
+        // Return to finish
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    public void showProgressBar() {
+        // Show progress item
+        if (miActionProgressItem != null) {
+            miActionProgressItem.setVisible(true);
+        }
+    }
+
+    public void hideProgressBar() {
+        // Hide progress item
+        if (miActionProgressItem != null) {
+            miActionProgressItem.setVisible(false);
+        }
+    }
+//
+//    @Override
+//    public ActionBar getSupportActionBar() {
+//        getSupportActionBar().getBackgroundDrawable(new ColorDrawable(getResources().getColor()))
+//    }
+//
+//    ActionBar actionBar = getActionBar();
+//actionBar.setBackgroundDrawable(new ColorDrawable(Color.RED));
 }

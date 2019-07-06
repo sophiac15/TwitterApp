@@ -22,6 +22,16 @@ public class Tweet {
     public String createdAt;
     public String relativeTime;
 
+
+    public int numberLikes;
+    public int numberRetweets;
+    public boolean liked;
+    public boolean retweeted;
+
+    //like boolean
+    //integer for number of likes
+    // when u use on click you change setting when
+
     // deserialize the JSON
     public static Tweet fromJSON(JSONObject jsonObject) throws JSONException {
         Tweet tweet = new Tweet();
@@ -32,9 +42,17 @@ public class Tweet {
         tweet.createdAt = jsonObject.getString("created_at");
         tweet.user = User.fromJSON(jsonObject.getJSONObject("user"));
         tweet.relativeTime = getRelativeTimeAgo(tweet.createdAt);
+        tweet.numberLikes = jsonObject.getInt("favorite_count");
+        tweet.liked = jsonObject.getBoolean("favorited");
+        tweet.numberRetweets = jsonObject.getInt("retweet_count");
+        tweet.retweeted = jsonObject.getBoolean("retweeted");
 
         return tweet;
     }
+
+
+
+
 
     // getRelativeTimeAgo("Mon Apr 01 21:16:23 +0000 2014");
     public static String getRelativeTimeAgo(String rawJsonDate) {
